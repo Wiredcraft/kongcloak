@@ -8,7 +8,7 @@ The goal of this tutorial is to setup a basic microservice environment using Kon
 1. Upon trying to access a protected endpoint, the user is redirected to the Keycloak login page if there is no active session.
 2. Keycloak issues an access & refresh token to the user, which are also cached by the client and used in subsequent requests to protected components
 3. The client can now access protected components behind the Kong gateway by filling the `Authorization` HTTP header with the access token (or use the refresh token to request a new access token from Keycloak if the old access token has expired)
-4. The Kong gateway validates the access token, the signature, the issuers, and the experiration time. If the validation is successful, the request proceeds to the protected component.
+4. The Kong gateway validates the access token, the signature, the issuers, and the expiration time. If the validation is successful, the request proceeds to the protected component.
 5. The protected component can decode the access token for extra context on the user (eg. role, username, etc.), before sending a response.
 6. The Kong gateway then forwards the response back to the client.
 
