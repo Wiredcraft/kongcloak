@@ -1,11 +1,9 @@
 {
-  "name": "client",
+  "name": "component",
   "version": "1.0.0",
   "main": "main.js",
   "engines": { "node": ">=4" },
   "scripts": { "start": "node ." },
-  "dependencies": {
-    "express": "^4.15.4"
-  },
+  "dependencies": { "express": "^4.15.4" },
   "license": "UNLICENSED"
 }

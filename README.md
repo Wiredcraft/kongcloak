@@ -259,7 +259,6 @@ Additionally, define an `index.html` file that uses the Keycloak adapter to auth
     .success(function (authenticated) {
       let req = new XMLHttpRequest()
       req.open('GET', 'http://localhost:8000/data', true)
-      req.setRequestHeader('Access-Control-Allow-Origin', '*')
       req.setRequestHeader('Accept', 'application/json')
       req.setRequestHeader('Authorization', 'Bearer ' + keycloak.token)
       req.onreadystatechange = function () {
