@@ -4,6 +4,6 @@
   "main": "main.js",
   "engines": { "node": ">=4" },
   "scripts": { "start": "node ." },
-  "dependencies": { "express": "^4.15.4" },
+  "dependencies": { "express": "^4.15.4", "jsonwebtoken": "^8.0.1" },
   "license": "UNLICENSED"
 }

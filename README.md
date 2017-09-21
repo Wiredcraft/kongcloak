@@ -144,6 +144,7 @@ $ curl -i -X POST \
   --data "upstream_url=http://192.168.1.132:3001/data" \
   --data "uris=/data"
 ```
+
 The JSON response looks like this:
 
 ```json
@@ -159,7 +160,7 @@ $ API_ID=61bbee71-eba3-4205-8241-7a3897c596c4
 To invoke the as of yet unprotected endpoint, run:
 
 ```sh
-$ curl -i -X http://localhost:8000/data
+$ curl -i -X GET http://localhost:8000/data
 ```
 
 ## 3.3 Add the JWT plugin to Kong
@@ -181,7 +182,7 @@ $ curl -X POST http://localhost:8001/consumers --data "username=demo"
 The response is in JSON:
 
 ```json
-{"created_at":1505211599594,"username":"demo","id":"fe1a9425-435d-4369-b035-036655a5f0ca"}
+{"created_at":1505211599594,"username":"demo-consumer","id":"fe1a9425-435d-4369-b035-036655a5f0ca"}
 ```
 
 Copy the consumer ID from the JSON response, eg.
@@ -279,7 +280,6 @@ Additionally, define an `index.html` file that uses the Keycloak adapter to auth
 
 Note that the adapter is provided by our running Keycloak instance and it is located at [localhost:8080/auth/js/keycloak.js](http://localhost:8080/auth/js/keycloak.js).
 
-
 Setup a simple node.js service to serve the client. `indexHTML` refers to the HTML file we are going to serve & `keycloakJSON` refers to the JSON file we extracted from Keycloak.
 
 ```javascript
@@ -309,3 +309,49 @@ Run the server on port `3000`.
 Navigate to [localhost:3000](http://localhost:3000); you will be redirected to Keycloak's login page. Enter the credentials for the user we created earlier (`jdoe`) and login. Then you will be able to access the protected endpoint:
 
 ![image](https://user-images.githubusercontent.com/760762/30646107-237ff5c2-9e18-11e7-8a93-5b3d9cc910a3.png)
+
+# 5. Create User Roles
+
+Sometimes the concept of roles is used to adapt how an API behaves for different sets of users. To create a role in Keycloak, navigate to [localhost:8080](http://localhost:8080), select your client (`demo-client`) from the Clients view, and click on the Roles tab. Then click on `Add Role`. Let's call the new role `subscribed`. Note that roles can also be created on the Realm level.
+
+The idea here is that we'll only populate the array returned via `GET /data` if the logged in user has the `subscribed` role.
+
+Keycloak sends the roles mapped to a user with the JWT token. Thus our protected component should be able to decode the token to get information on a user's roles, as well as other details. For reference, you can print the token on the browser console by typing `keycloak.token`. A quick way to decode it is via [jwt.io](http://www.jwt.io).
+
+![image](https://user-images.githubusercontent.com/760762/30696329-92add392-9edb-11e7-8fef-e49f5d76457b.png)
+
+For our protected component to decode the token, we'll use the `jsonwebtoken` module. Modify the protected component server to this:
+
+```javascript
+'use strict'
+
+const express = require('express')
+const jwt = require('jsonwebtoken')
+
+const app = express()
+
+app.get('/data', function (req, res) {
+  if (!req.headers['authorization']) return res.end()
+  let encToken = req.headers['authorization'].replace(/Bearer\s/, '')
+  let decToken = jwt.decode(encToken)
+  let clientAccess = decToken.resource_access['demo-client']
+  if (clientAccess && clientAccess.roles.includes('subscribed'))
+    res.json(['cat', 'dog', 'cow'])
+  else
+    res.json([])
+})
+
+app.listen(3001)
+```
+
+Restart the server, and then navigate to your client at [localhost:3000](http://localhost:3000). After logging in, the client will access the `GET /data` endpoint of the protected component. But this time, we see that the endpoint returns an empty array.
+
+![image](https://user-images.githubusercontent.com/760762/30695221-aa689ad4-9ed7-11e7-94f5-e11e71e5e3a7.png)
+
+This is because we didn't map the `subscribed` role to the `jdoe` user. To do so, navigate back to the Keycloak admin console at [localhost:8080](http://localhost:8080) and navigate to the Users view. Click `Edit` on the row of user `jdoe` and the click on the `Role Mappings` tab.
+
+Expand the dropdown menu under `Client Roles` and select our client, `demo-client`. Then select the `subscribed` role displayed under `Available Roles` and click on `Add selected`.
+
+![image](https://user-images.githubusercontent.com/760762/30695352-2e45861e-9ed8-11e7-98e7-3bef04e08563.png)
+
+Now the `jdoe` has the `subscribed` role. To see the difference, navigate back to the client at [localhost:3000](http://localhost:3000). Note that the session must be refreshed so that the token contains the changes we made to user roles. To logout from the previous session, simply run `keycloak.logout()` from the browser console. You will then be redirected to the login view. After authenticating, you should see `GET /data` no longer returns an empty array as it did when `jdoe` didn't have the `subscribed` role.
