@@ -64,15 +64,7 @@ Once the client is created, we'll be redirected to the client settings view. Scr
 
 # 3. Secure Kong with Keycloak
 
-Navigate back to the Keycloak admin console at [localhost:8080](http://localhost:8080) and go to the Realm Settings page. Click on the `Keys` tab and copy the RSA public key. Export it to a file, eg. `mykey-pub.pem`, appending the `-----BEGIN PUBLIC KEY-----` as a header and `-----END PUBLIC KEY-----` as a footer. Eg,
-
-```
------BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuF0GKo9tSwSkpseIRBRkLBEmCa6IswV79Jw7IzFFsjJ3DSMkjfImILxl2DlHQJC3KJKp21IYU7yejbPShCTQ2zfPXNdietEOGwDvErslY5eAHxKPHtPGtS1ybVcO4khMN/40nBTb4Aa+/gmiVMDw326wRnW5ndccKf+EkvJP+fJkMmrMOLIM7odW7nJDq+X0MTEbZxnNIrVBUhimQsv7FHyE+Bm8RYR8xjsTJJfGmNzcn937nO5fLpal3eu0RDMuEzRc7FtPcpg7msK+ATOVwBhM4n4DHPh1WDycz2VH5A4rmhZISM1l0AQGv52ztWAsHFiYFflpOf4HCIXSHY9VXwIDAQAB
------END PUBLIC KEY-----
-```
-
-Then run
+To connect Kong with Keycloak, run:
 
 ```sh
 $ ./scripts/secure.sh
