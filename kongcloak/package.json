@@ -1,0 +1,9 @@
+{
+  "name": "kongcloak",
+  "version": "1.0.0",
+  "main": "main.js",
+  "engines": { "node": ">=4" },
+  "scripts": { "start": "node ." },
+  "dependencies": { "request": "^2.82.0" },
+  "license": "UNLICENSED"
+}

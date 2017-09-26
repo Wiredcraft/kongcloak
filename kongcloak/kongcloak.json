@@ -1,0 +1,48 @@
+{
+  "keycloak": {
+    "credentials": {
+      "username": "admin",
+      "password": "admin"
+    },
+    "realm": {
+      "name": "demo-realm",
+      "registrationAllowed": true,
+      "clients": [
+        {
+          "name": "demo-client",
+          "redirects": ["http://localhost:3000/*"],
+          "origins": ["http://localhost:3000"]
+        }
+      ],
+      "roles": [
+        { "name": "subscribed", "description": "A user with a subscription" }
+      ],
+      "users": [
+        {
+          "username": "jdoe",
+          "password": "12345",
+          "roles": ["subscribed"]
+        }
+      ]
+    }
+  },
+  "kong": {
+    "consumer": "demo-consumer",
+    "endpoints": [
+      {
+        "name": "data",
+        "url": "http://192.168.1.132:3001/data",
+        "route": "/data",
+        "jwt": true,
+        "cors": {
+          "origins": ["http://localhost:3000/*"],
+          "methods": ["GET"],
+          "headers": ["Accept", "Accept-Version", "Content-Length", "Content-MD5", "Content-Type", "Date", "Authorization"],
+          "exposedHeaders": ["Authorization"],
+          "credentials": true,
+          "maxAge": 3600
+        }
+      }
+    ]
+  }
+}
