@@ -5,6 +5,8 @@
 <a href='http://localhost:8080/auth/realms/demo-realm/protocol/openid-connect/logout?redirect_uri=http%3A%2F%2Flocalhost%3A3000'>Logout</a>
 <button onclick='getFree()'>Get /free</button>
 <button onclick='getPaid()'>Get /paid</button>
+<h1>Response:</h1>
+<div id='response'></div>
 <script src='http://localhost:8080/auth/js/keycloak.js'></script>
 <script type='text/javascript'>
 
@@ -30,6 +32,7 @@
     get('http://localhost:8000/component/paid')
   }
 
+  const div = document.getElementById('response')
   function get (route) {
     let req = new XMLHttpRequest()
     req.open('GET', route, true)
@@ -38,9 +41,9 @@
     req.onreadystatechange = function () {
       if (req.readyState === 4) {
         if (req.status === 200) {
-          alert('Response: ' + req.responseText)
+          div.innerText = req.responseText
         } else {
-          alert('Request returned: ' + req.status)
+          div.innerText = 'Request returned: ' + req.status
         }
       }
     }
