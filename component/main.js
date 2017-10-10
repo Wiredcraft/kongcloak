@@ -5,15 +5,24 @@ const jwt = require('jsonwebtoken')
 
 const app = express()
 
-app.get('/data', function (req, res) {
+app.get('/free', function (req, res) {
+  res.json(['cat', 'dog', 'cow'])
+})
+
+app.get('/paid', function (req, res) {
   if (!req.headers['authorization']) return res.end()
-  let encToken = req.headers['authorization'].replace(/Bearer\s/, '')
-  let decToken = jwt.decode(encToken)
-  let realmAccess = decToken.realm_access
-  if (realmAccess && realmAccess.roles.includes('subscribed'))
-    res.json(['cat', 'dog', 'cow'])
+  let roles = getRoles(req)
+  if (roles.includes('subscriber'))
+    res.json(['super cat', 'super dog', 'super cow'])
   else
-    res.json([])
+    res.json({ message: 'Nope, pay first' })
 })
 
 app.listen(3001)
+
+function getRoles (req) {
+  let encToken = req.headers['authorization'].replace(/Bearer\s/, '')
+  let decToken = jwt.decode(encToken)
+  let clientAccess = decToken.resource_access['demo-client']
+  return clientAccess && clientAccess.roles ? clientAccess.roles : []
+}
