@@ -17,7 +17,7 @@ docker run -d --name kong-database \
   -e "POSTGRES_DB=kong" \
   postgres:9.4
 
-sleep 10
+sleep 5
 
 # run db migrations
 docker run --rm \

@@ -10,7 +10,8 @@ app.get('/free', function (req, res) {
 })
 
 app.get('/paid', function (req, res) {
-  if (!req.headers['authorization']) return res.end()
+  if (!req.headers['authorization'])
+    return res.status(401).send('Unauthorized').end()
   let roles = getRoles(req)
   if (roles.includes('subscriber'))
     res.json(['super cat', 'super dog', 'super cow'])
