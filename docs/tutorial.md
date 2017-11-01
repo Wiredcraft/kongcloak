@@ -1,7 +1,22 @@
 Securing Components in a Microservice Context
 =============================================
 
-The goal of this tutorial is to setup a basic microservice environment using Kong as a gateway and Keycloak to manage authentication. The end result will thus look something like this:
+Microservices are essentially modular components, implementing parts of a broader business logic, that are networked together to implement the business logic in full. This is a departure from monolithic architectures, where everything is contained & tightly integrated in one large service.
+
+The modularity that microservice architectures allow for means that code (ie, individual components) can be reused in multiple scenarios. For example, a component managing customer subscriptions can be reused in many different applications whose business logic requires it. However, departing from monolithic architectures comes along with some challenges revolving around two things:
+
+* managing components
+* securing components
+
+In monolithic architectures it's fairly straightforward (think libraries) to implement features such as user authentication, request/response logging, rate-limiting and so on. But what happens when the business logic is broken down into multiple modular components?
+
+One approach would be to establish guidelines for component developers on what libraries to use and how to implement features such as authentication or request/response logging. But that can be a nuisance, especially as the number of components increases. And what if, down the line, it is decided that a different authentication or logging mechanism is used? In that scenario, component developers would have to go through each of their components to make the necessary changes in their code to account for the new decisions.
+
+Fortunately, there are open-source solutions that provide out-of-the-box robust API management (such as the Kong gateway) as well as user management and authentication (such as the Keycloak authentication suite) that help avoid these issues.
+
+A gateway for instance can be configured to implement functionality such as token signature validation or rate-limiting or logging that scales across all components. Similarly, an authentication suite can be configured to manage users, tokens, and sessions that all components have access to. Thus making the right choice of 3rd party open-source solutions allows the component developer to focus exclusively in the part of the business logic their component implements and leave the rest up to the gateway.
+
+The goal of this tutorial is hence to setup a basic microservice environment using Kong as a gateway and Keycloak to manage authentication. The end result will thus look something like this:
 
 ![image](https://user-images.githubusercontent.com/760762/30317912-e0012fe0-97ab-11e7-91fb-3d852c137796.png)
 
@@ -357,3 +372,6 @@ Expand the dropdown menu under `Client Roles` and select our client, `demo-clien
 ![image](https://user-images.githubusercontent.com/760762/30695352-2e45861e-9ed8-11e7-98e7-3bef04e08563.png)
 
 Now the `jdoe` has the `subscribed` role. To see the difference, navigate back to the client at [localhost:3000](http://localhost:3000). Note that the session must be refreshed so that the token contains the changes we made to user roles. To logout from the previous session, simply run `keycloak.logout()` from the browser console. You will then be redirected to the login view. After authenticating, you should see `GET /data` no longer returns an empty array as it did when `jdoe` didn't have the `subscribed` role.
+
+# 6. Conclusion
+This tutorial walks through setting up an open-source gateway and authentication suite, demonstrating how to decouple component & authentication management from individual modules. This allows component developers to exclusively focus on the parts of the business logic they are responsible for and let the gateway and the authentication suite to manage features that scale across all components.
