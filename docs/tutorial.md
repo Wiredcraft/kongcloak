@@ -177,7 +177,7 @@ Copy the API ID to an environment variable, eg.
 $ API_ID=61bbee71-eba3-4205-8241-7a3897c596c4
 ```
 
-To invoke the as of yet unprotected endpoint, run:
+In order to make a call to the as of yet unprotected endpoint, run:
 
 ```sh
 $ curl -i -X GET http://localhost:8000/data
