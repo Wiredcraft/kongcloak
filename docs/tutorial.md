@@ -1,31 +1,30 @@
 Securing Components in a Microservice Context
 =============================================
 
-Microservices are essentially modular components, implementing parts of a broader business logic, that are networked together to implement the business logic in full. This is a departure from monolithic architectures, where everything is contained & tightly integrated in one large service.
+Microservices are essentially modular components implementing parts of a broader business logic, which are networked together to implement the business logic in full. This is a departure from monolithic architectures, where everything is contained & tightly coupled in one large service.
 
-The modularity that microservice architectures allow for means that code (ie, individual components) can be reused in multiple scenarios. For example, a component managing customer subscriptions can be reused in many different applications whose business logic requires it. However, departing from monolithic architectures comes along with some challenges revolving around two things:
+The modularity that microservice architectures allow for means that code (ie, individual components) can be reused in multiple scenarios. For example, a component managing customer subscriptions can be reused in many different applications whose business logic requires it. However, departing from monolithic architectures comes along with some challenges revolving around 1) managing and 2) securing components.
 
-* managing components
-* securing components
+In monolithic architectures it's fairly straightforward (think libraries) to implement features such as user authentication, request/response logging, rate-limiting and so on. But what happens when the business logic is broken down to multiple modular components?
 
-In monolithic architectures it's fairly straightforward (think libraries) to implement features such as user authentication, request/response logging, rate-limiting and so on. But what happens when the business logic is broken down into multiple modular components?
-
-One approach would be to establish guidelines for component developers on what libraries to use and how to implement features such as authentication or request/response logging. But that can be a nuisance, especially as the number of components increases. And what if, down the line, it is decided that a different authentication or logging mechanism is used? In that scenario, component developers would have to go through each of their components to make the necessary changes in their code to account for the new decisions.
+One approach is to establish guidelines for component developers on what libraries to use and how to implement features such as authentication or request/response logging. But that can be a nuisance, especially as the number of components increases. And what if, down the line, it is decided that a different authentication or logging mechanism is used? In that scenario, component developers would have to go through each of their components to make the necessary changes in their code to account for the new decisions.
 
 Fortunately, there are open-source solutions that provide out-of-the-box robust API management (such as the Kong gateway) as well as user management and authentication (such as the Keycloak authentication suite) that help avoid these issues.
 
 A gateway for instance can be configured to implement functionality such as token signature validation or rate-limiting or logging that scales across all components. Similarly, an authentication suite can be configured to manage users, tokens, and sessions that all components have access to. Thus making the right choice of 3rd party open-source solutions allows the component developer to focus exclusively in the part of the business logic their component implements and leave the rest up to the gateway.
 
-The goal of this tutorial is hence to setup a basic microservice environment using Kong as a gateway and Keycloak to manage authentication. The end result will thus look something like this:
+The goal of this tutorial is hence to setup a basic microservice environment using Kong as a gateway and Keycloak as the authentication suite. The end result will thus look something like this:
 
 ![image](https://user-images.githubusercontent.com/760762/30317912-e0012fe0-97ab-11e7-91fb-3d852c137796.png)
 
 1. Upon trying to access a protected endpoint, the user is redirected to the Keycloak login page if there is no active session.
-2. Keycloak issues an access & refresh token to the user, which are also cached by the client and used in subsequent requests to protected components
-3. The client can now access protected components behind the Kong gateway by filling the `Authorization` HTTP header with the access token (or use the refresh token to request a new access token from Keycloak if the old access token has expired)
+2. Keycloak issues an access and refresh token to the user, which are also cached by the client and used in subsequent requests to protected components.
+3. The client can now access protected components behind the Kong gateway by filling the `Authorization` HTTP header with the access token (or use the refresh token to request a new access token from Keycloak if the old access token has expired).
 4. The Kong gateway validates the access token, the signature, the issuers, and the expiration time. If the validation is successful, the request proceeds to the protected component.
 5. The protected component can decode the access token for extra context on the user (eg. role, username, etc.), before sending a response.
 6. The Kong gateway then forwards the response back to the client.
+
+Note: In production it may make more sense for Keycloak to also be behind the Kong gateway; this has been omitted here for simplicity.
 
 For the purposes of this tutorial we'll define a `GET /data` endpoint on a protected component behind Kong. This endpoint will be accessible to users who are authenticated via Keycloak.
 
@@ -33,12 +32,14 @@ First, we'll setup running instances of Kong and Keycloak, then we'll define the
 
 # 0. Flush docker
 
-If you have other instances of Kong or Keycloak running Docker & wish to start fresh, run the following commands:
+If you have other instances of Kong or Keycloak running with Docker & wish to start fresh, run the following commands:
 
 ```sh
-$ docker stop $(docker ps -a -q) # stop running containers
-$ docker rm $(docker ps -a -q) # remove containers
+$ docker stop $(docker ps -a -q) # stop all running containers
+$ docker rm $(docker ps -a -q) # remove containers (optional)
 ```
+
+Alternatively you can fetch the relevant container IDs and remove those.
 
 # 1. Setup Kong
 
@@ -103,7 +104,7 @@ A core concept in Keycloak is that of a realm. A realm secures and manages metad
 
 To create a realm, first navigate to the Keycloak admin interface at [localhost:8080](http://localhost:8080). Use the admin credentials passed to the Keycloak initialization routine in the previous section to login.
 
-To create a new realm, hover over `Master` on the top left side of the UI; `Master` refers to the default realm. Upon hovering over the default realm, an `Add realm` button will be displayed. Click on it.
+To create a new realm, hover over `Master` on the top left corner of the UI; `Master` refers to the default realm. Upon hovering over the default realm, an `Add realm` button will be displayed. Click on it.
 
 For the realm name, let's use `demo-realm`. Then click on `Create`.
 
@@ -150,7 +151,9 @@ Run the server on port `3001`.
 
 ## 3.2 Declare the Component with Kong
 
-Run `ip route get 8.8.8.8 | awk '{print $NF; exit}'` to get the internal IP, eg. `192.168.1.132`. Then if your endpoint's URL is `localhost:3001/data`, replace `localhost` with `192.168.1.132`.
+On Linux, run `ip route get 8.8.8.8 | awk '{print $NF; exit}'` to get the internal IP, eg. `192.168.1.132`. If you're on MacOS, fetch the internal IP by `ifconfig`.
+
+Then if your endpoint's URL is `localhost:3001/data`, replace `localhost` with the internal IP.
 
 To register the endpoint, run:
 
@@ -374,4 +377,4 @@ Expand the dropdown menu under `Client Roles` and select our client, `demo-clien
 Now the `jdoe` has the `subscribed` role. To see the difference, navigate back to the client at [localhost:3000](http://localhost:3000). Note that the session must be refreshed so that the token contains the changes we made to user roles. To logout from the previous session, simply run `keycloak.logout()` from the browser console. You will then be redirected to the login view. After authenticating, you should see `GET /data` no longer returns an empty array as it did when `jdoe` didn't have the `subscribed` role.
 
 # 6. Conclusion
-This tutorial walks through setting up an open-source gateway and authentication suite, demonstrating how to decouple component & authentication management from individual components. This decoupling allows component developers to exclusively focus on the parts of the business logic they are responsible for and let the gateway and the authentication suite to manage features that scale across all components.
+This tutorial goes through setting up an open-source gateway and authentication suite, demonstrating how to decouple component & authentication management from individual components implementing business logic. This decoupling allows component developers to exclusively focus on the parts of the business logic they are responsible for and let the gateway and the authentication suite to manage features that scale across all components.
